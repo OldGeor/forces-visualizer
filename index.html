@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>力的合成与分解可视化教学工具</title>
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="theme-light">
+    <div class="header">
+        <h1>力的合成与分解可视化教学工具</h1>
+        <div class="header-controls">
+            <div class="control-component">
+                <label for="themeSelect">主题:</label>
+                <select id="themeSelect">
+                    <option value="light">浅色主题</option>
+                    <option value="dark">深色主题</option>
+                    <option value="blue">蓝色主题</option>
+                    <option value="green">绿色主题</option>
+                    <option value="purple">紫色主题</option>
+                </select>
+            </div>
+            
+            <div class="control-component">
+                <label for="lineWidth">线宽:</label>
+                <input type="number" id="lineWidth" min="1" max="10" value="2">
+            </div>
+            
+            <div class="control-component">
+                <label for="backgroundType">背景:</label>
+                <select id="backgroundType">
+                    <option value="none">无背景</option>
+                    <option value="grid">网格背景</option>
+                    <option value="dots">点状背景</option>
+                </select>
+            </div>
+            
+            <button class="btn" id="helpBtn">帮助</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="forceCanvas"></canvas>
+            <div class="resultant-display" id="resultantDisplay">
+                <span>
+                    合力: <span class="force-name">F<span class="force-name-subscript">合</span></span> = 
+                    <span id="resultantValue">0 N</span>，方向: <span id="resultantAngle">0°</span>
+                </span>
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomIn">放大</button>
+                <button class="zoom-btn" id="zoomOut">缩小</button>
+                <button class="zoom-btn" id="zoomFit">自适应</button>
+            </div>
+        </div>
+        
+        <div class="divider" id="divider"></div>
+        
+        <div class="control-panel">
+            <div class="panel-section">
+                <div class="panel-title">操作历史</div>
+                <div class="btn-group">
+                    <button class="btn" id="undoBtn" disabled>撤销</button>
+                    <button class="btn" id="redoBtn" disabled>重做</button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">数据操作</div>
+                <div class="btn-group">
+                    <button class="btn" id="exportDataBtn">导出数据</button>
+                    <button class="btn" id="importDataBtn">导入数据</button>
+                    <button class="btn" id="viewDataBtn">查看数据</button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">添加新力</div>
+                <div class="control-group">
+                    <label for="forceMagnitude">力的大小 (N)</label>
+                    <div class="slider-container">
+                        <input type="range" id="forceMagnitude" min="1" max="100" value="20">
+                        <input type="number" id="forceMagnitudeInput" min="1" max="10000" value="20">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="forceAngle">力的方向 (°)</label>
+                    <div class="slider-container">
+                        <input type="range" id="forceAngle" min="0" max="360" value="0">
+                        <input type="number" id="forceAngleInput" min="0" max="360" value="0">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="forceColor">力的颜色</label>
+                    <input type="color" id="forceColor" value="#0078d4">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="fixedColor">
+                        <label for="fixedColor">固定颜色（勾选则使用选定颜色）</label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-add" id="addForce">添加力</button>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">力列表</div>
+                <table id="forcesTable">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>颜色</th>
+                            <th>大小 (N)</th>
+                            <th>方向 (°)</th>
+                            <th>分力 (N)</th>
+                            <th>分解</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forcesList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">力的合成与分解教学工具 - 使用帮助</h2>
+                <button class="close-btn" id="closeHelpModal">&times;</button>
+            </div>
+            <div class="modal-body help-content">
+                <h3>基本操作</h3>
+                <ul>
+                    <li><strong>添加力</strong>：在左侧面板设置力的大小、方向和颜色，然后点击"添加力"按钮</li>
+                    <li><strong>选择力</strong>：点击画布中的力箭头或力矢量线可以选择力</li>
+                    <li><strong>调整力</strong>：选中力后会出现三个控制点：
+                        <ul>
+                            <li>末端控制点：同时调整力的大小和方向</li>
+                            <li>前方控制点：只调整力的大小</li>
+                            <li>后方控制点：只调整力的方向</li>
+                        </ul>
+                    </li>
+                    <li><strong>分解力</strong>：在力列表中点击"分解"按钮，可以将力分解为水平和垂直分量</li>
+                    <li><strong>删除力</strong>：在力列表中点击"删除"按钮可以移除力</li>
+                </ul>
+                
+                <h3>视图控制</h3>
+                <ul>
+                    <li><strong>缩放</strong>：使用鼠标滚轮或右下角的缩放按钮</li>
+                    <li><strong>平移</strong>：按住鼠标左键并拖动可以平移视图</li>
+                    <li><strong>自适应</strong>：点击"自适应"按钮可以自动调整视图以显示所有力</li>
+                </ul>
+                
+                <h3>数据操作</h3>
+                <ul>
+                    <li><strong>导出数据</strong>：将当前场景中的力数据导出为JSON文件</li>
+                    <li><strong>导入数据</strong>：从JSON文件导入力数据</li>
+                    <li><strong>查看数据</strong>：以表格形式查看所有力的详细数据</li>
+                    <li><strong>撤销/重做</strong>：使用撤销和重做按钮可以回退或恢复操作</li>
+                </ul>
+                
+                <h3>触屏操作</h3>
+                <ul>
+                    <li>支持多点触控操作，适合在教室一体机上演示</li>
+                    <li>单指拖动可以平移视图</li>
+                    <li>双指捏合可以缩放视图</li>
+                    <li>点击力矢量或控制点可以选择和调整力</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="closeHelpBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dataModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">力数据详情</h2>
+                <button class="close-btn" id="closeDataModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>大小 (N)</th>
+                            <th>方向 (°)</th>
+                            <th>X分量 (N)</th>
+                            <th>Y分量 (N)</th>
+                            <th>颜色</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="closeDataBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/dom-elements.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/force-manager.js"></script>
+    <script src="js/drawing.js"></script>
+    <script src="js/interaction.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/history-manager.js"></script>
+    <script src="js/data-manager.js"></script>
+    <script src="js/panel-resize.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
